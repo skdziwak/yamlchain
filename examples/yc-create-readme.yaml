@@ -1,0 +1,90 @@
+workflows:
+  - name: create_readme
+    description: Generates a README.md file for a project.
+    stages:
+      - name: project_description
+        stage:
+          type: user_input
+          message: "What does this project do?"
+
+      - name: project_tree
+        stage:
+          type: shell_command
+          command: tree
+          args:
+            - "src/"
+
+      - name: relevant_files
+        stage:
+          type: ai_processing
+          model: gpt-4
+          system_message: "Based on the project tree, please identify the most relevant files for the README.md."
+          prompt: "${project_tree}"
+
+      - name: review_files
+        stage:
+          type: user_input
+          message: "Here are the relevant files identified for the README.md. Please review and modify as necessary: \n${relevant_files}"
+
+      - name: validate_paths
+        stage:
+          type: ai_processing
+          model: gpt-4
+          system_message: "Ensure all paths provided by the user are valid relative paths and correct them if needed. Output only a list of paths, no comments, nothing else."
+          prompt: "Review the paths: \n${review_files} \nBased on the original project tree: \n${project_tree}"
+
+      - name: paths_to_list
+        stage:
+          type: ai_reshape
+          model: gpt-3.5-turbo
+          data: "${validate_paths}"
+          target: list
+
+      - name: read_files_content
+        stage:
+          type: shell_script
+          command: bash
+          script: |
+            while IFS= read -r line; do
+                [[ -z $line ]] && continue
+                echo "$line"
+                if [[ -f $line && -r $line ]]; then
+                    cat "$line"
+                else
+                    echo "Error: Unable to read file $line"
+                fi
+                echo "========="
+            done
+          stdin: "${paths_to_list}"
+
+      - name: plan_readme
+        stage:
+          type: ai_processing
+          model: gpt-4
+          system_message: "With all the gathered context, provide a plan for the README.md."
+          prompt: "Project Description: ${project_description} \nFiles Content: \n${read_files_content}"
+
+      - name: review_plan
+        stage:
+          type: user_input
+          message: "Here's the proposed outline for README.md. Please review and modify as necessary: \n${plan_readme}"
+
+      - name: generate_readme
+        stage:
+          type: ai_processing
+          model: gpt-4
+          system_message: "Generate the final README.md based on the reviewed plan."
+          prompt: |
+            Project description:
+            ${project_description}
+            Relevant files from project:
+            ${read_files_content}
+            Review plan:
+            ${review_plan}
+
+      - name: save_readme
+        stage:
+          type: save_file
+          path: "README.md"
+          content: "${generate_readme}"
+

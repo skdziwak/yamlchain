@@ -1,0 +1,486 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflows",
+  "type": "object",
+  "required": [
+    "workflows"
+  ],
+  "properties": {
+    "workflows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Workflow"
+      }
+    }
+  },
+  "definitions": {
+    "AiReshapeTarget": {
+      "type": "string",
+      "enum": [
+        "list"
+      ]
+    },
+    "Model": {
+      "type": "string",
+      "enum": [
+        "gpt-4",
+        "gpt-4-32k",
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-16k"
+      ]
+    },
+    "Workflow": {
+      "type": "object",
+      "required": [
+        "name",
+        "stages"
+      ],
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "stages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WorkflowStageData"
+          }
+        }
+      }
+    },
+    "WorkflowStage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "data",
+            "example",
+            "model",
+            "type"
+          ],
+          "properties": {
+            "data": {
+              "type": "string"
+            },
+            "example": {
+              "type": "string"
+            },
+            "model": {
+              "$ref": "#/definitions/Model"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "to_json"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "else_stages",
+            "if_stages",
+            "left",
+            "right",
+            "type"
+          ],
+          "properties": {
+            "else_stages": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WorkflowStageData"
+              }
+            },
+            "if_stages": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WorkflowStageData"
+              }
+            },
+            "left": {
+              "type": "string"
+            },
+            "right": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "if_else"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "message",
+            "type"
+          ],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "log_warn"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "data",
+            "model",
+            "target",
+            "type"
+          ],
+          "properties": {
+            "data": {
+              "type": "string"
+            },
+            "model": {
+              "$ref": "#/definitions/Model"
+            },
+            "target": {
+              "$ref": "#/definitions/AiReshapeTarget"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "ai_reshape"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "list",
+            "stages",
+            "type",
+            "variable"
+          ],
+          "properties": {
+            "list": {
+              "type": "string"
+            },
+            "stages": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WorkflowStageData"
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "for_each"
+              ]
+            },
+            "variable": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "content",
+            "path",
+            "type"
+          ],
+          "properties": {
+            "content": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "save_file"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "include_names",
+            "paths",
+            "type"
+          ],
+          "properties": {
+            "include_names": {
+              "type": "boolean"
+            },
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "load_file"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "script",
+            "type"
+          ],
+          "properties": {
+            "script": {
+              "type": "string"
+            },
+            "shell": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "stdin": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "shell_script"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "script",
+            "type"
+          ],
+          "properties": {
+            "script": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "python_script"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "message",
+            "type"
+          ],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "user_input"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "command",
+            "type"
+          ],
+          "properties": {
+            "args": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "command": {
+              "type": "string"
+            },
+            "stdin": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "shell_command"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "expected_value",
+            "stages",
+            "type",
+            "value"
+          ],
+          "properties": {
+            "expected_value": {
+              "type": "string"
+            },
+            "max_iterations": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint",
+              "minimum": 0.0
+            },
+            "stages": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WorkflowStageData"
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "until"
+              ]
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "info_message",
+            "initial_input",
+            "model",
+            "type"
+          ],
+          "properties": {
+            "info_message": {
+              "type": "string"
+            },
+            "initial_input": {
+              "type": "string"
+            },
+            "model": {
+              "$ref": "#/definitions/Model"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "feedback_loop"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "prompt",
+            "system_message",
+            "type"
+          ],
+          "properties": {
+            "model": {
+              "$ref": "#/definitions/Model"
+            },
+            "prompt": {
+              "type": "string"
+            },
+            "system_message": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "ai_processing"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "output",
+            "type"
+          ],
+          "properties": {
+            "output": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "print"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "set"
+              ]
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "WorkflowStageData": {
+      "type": "object",
+      "required": [
+        "name",
+        "stage"
+      ],
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/definitions/WorkflowStage"
+        }
+      }
+    }
+  }
+}

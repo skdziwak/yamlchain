@@ -1,0 +1,140 @@
+workflows:
+  - name: create_stage
+    description: This workflow allows you to implement new features in this project.
+    stages:
+      # Explains the purpose and structure of the project
+      - name: description
+        stage:
+          type: set
+          value: |
+            This project is a declarative yaml-based tool for defining workflows.
+            A workflow is made of stages, which include user input, processing by GPT models, feedback loops,
+            automated testing, executing bash scripts etc.
+            It consists of modules, each of those can control program flow, call OpenAI API, print output, save files etc.
+            Those modules are called stages.
+
+      # Gathers user input on what feature they want to implement
+      - name: goal
+        stage:
+          type: user_input
+          message: |
+            Describe what you want to implement.
+
+      # Generates user stories based on the user input
+      - name: user-stories
+        stage:
+          type: ai_processing
+          model: gpt-4
+          system_message: |
+            ${description}
+            Your goal is to write user stories based on user input.
+            User will tell you what feature he needs, and you will give him a list.
+          prompt: |
+            Here is what I want to implement:
+            ${goal}
+
+      # Allows the user to review the generated user stories
+      - name: user-stories-fl
+        stage:
+          type: user_input
+          message: |
+            Those are generated user stories. Uncomment the ones you like.
+            ${user-stories}
+
+      # Reads the project tree from the src directory
+      - name: project-tree
+        stage:
+          type: shell_command
+          command: tree
+          args:
+            - "src"
+
+      # Determines which files in the project are most relevant to the new feature
+      - name: relevant-files
+        stage:
+          type: ai_processing
+          model: gpt-4
+          system_message: |
+            ${description}
+            You will be provided with a project tree and user stories for a new feature.
+            Your task is to give me a list of relative paths of relevant files starting with ./src 
+            Those files will be presented to the programmer, so he knows the context of the project.
+            Maximum 5 files. Two of those files should be example stages from workflows/stages that might help you.
+          prompt: |
+            ${project-tree}
+            User stories:
+            ${user-stories-fl}
+
+      # Transforms the output of the previous stage into a list
+      - name: relevant-files-list
+        stage:
+          type: ai_reshape
+          model: gpt-3.5-turbo
+          target: list
+          data: ${relevant-files}
+
+      # Retrieves the content of the identified relevant files
+      - name: relevant-files-content
+        stage:
+          type: shell_script
+          script: |
+            while IFS= read -r line; do
+                [[ -z $line ]] && continue
+                echo "$line"
+                if [[ -f $line && -r $line ]]; then
+                    cat "$line"
+                else
+                    echo "Error: Unable to read file $line"
+                fi
+                echo "========="
+            done
+          stdin: ${relevant-files-list}
+
+      # Writes the code for the new feature
+      - name: coding
+        stage:
+          type: ai_processing
+          model: gpt-4
+          system_message: |
+            ${description}
+            You will be provided with a list of relevant files and user stories for a new feature.
+            Your task is to write code for this feature in just one file at workflows/stages path
+            You only output the code, no comments, no file names, no markdown code blocks, just the code itself.
+          prompt: |
+            Relevant files:
+            ${relevant-files-content}
+            User stories:
+            ${user-stories-fl}
+
+      # Provides a feedback loop to refine the generated code
+      - name: coding-fl
+        stage:
+          type: feedback_loop
+          model: gpt-4
+          info_message: |
+            Relevant files:
+              ${relevant-files-content}
+            User stories:
+              ${user-stories-fl}
+            Your task is to improve the code.
+          initial_input: ${coding}
+
+      # Captures the name of the module from the user
+      - name: module 
+        stage:
+          type: user_input
+          message: What is the name of the module?
+
+      # Saves the final code to a Rust source file
+      - name: save
+        stage:
+          type: save_file
+          path: src/workflows/stages/${module}.rs
+          content: ${coding-fl}
+
+      # Adds the newly created module to the main stages file
+      - name: add-module
+        stage:
+          type: shell_script
+          script: |
+            echo "pub mod ${module};" >> src/workflows/stages.rs
