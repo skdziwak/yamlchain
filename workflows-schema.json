@@ -59,6 +59,36 @@
           "type": "object",
           "required": [
             "data",
+            "delimiter",
+            "remove_empty",
+            "trim",
+            "type"
+          ],
+          "properties": {
+            "data": {
+              "type": "string"
+            },
+            "delimiter": {
+              "type": "string"
+            },
+            "remove_empty": {
+              "type": "boolean"
+            },
+            "trim": {
+              "type": "boolean"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "split"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "data",
             "example",
             "model",
             "type"

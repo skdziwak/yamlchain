@@ -33,3 +33,4 @@ pub mod load_file;
 pub mod set;
 pub mod shell_script;
 pub mod warn;
+pub mod split;
