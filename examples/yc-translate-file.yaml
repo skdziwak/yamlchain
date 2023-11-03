@@ -1,0 +1,57 @@
+workflows:
+  - name: translate
+    description: |
+      Translates a text file. It splits it by ##### sequence, so translating long articles is possible.
+    stages:
+      - name: file_name
+        stage:
+          type: user_input
+          message: "File name:"
+
+      - name: language
+        stage:
+          type: user_input
+          message: "Target language:"
+
+      - name: content
+        stage: 
+          type: load_file
+          include_names: false
+          paths:
+            - "${file_name}"
+      
+      - name: split
+        stage:
+          type: split
+          data: ${content}
+          delimiter: "#####"
+          trim: true
+          remove_empty: true
+
+      - name: loop
+        stage:
+          type: for_each
+          list: split
+          variable: text
+          stages:
+            - name: translate
+              stage:
+                type: ai_processing
+                model: gpt-4
+                system_message: |
+                  You are a translator. You translate all the text to ${language}
+                  Output only translated text, do not comment anything, do not try to interact with the user.
+                prompt: |
+                  ${text}
+                  =====
+                  Translate this text to ${language}
+
+      - name: save
+        stage:
+          type: save_file
+          path: translated.txt
+          content: ${loop}
+
+
+
+
