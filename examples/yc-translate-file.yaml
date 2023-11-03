@@ -19,6 +19,11 @@ workflows:
           include_names: false
           paths:
             - "${file_name}"
+
+      - name: instructions
+        stage:
+          type: user_input
+          message: "Additional instructions:"
       
       - name: split
         stage:
@@ -41,10 +46,12 @@ workflows:
                 system_message: |
                   You are a translator. You translate all the text to ${language}
                   Output only translated text, do not comment anything, do not try to interact with the user.
+                  ${instructions}
                 prompt: |
                   ${text}
                   =====
                   Translate this text to ${language}
+                  ${instructions}
 
       - name: save
         stage:
