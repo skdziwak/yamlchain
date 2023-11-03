@@ -35,7 +35,10 @@ impl<'a> StageRunner for ForEachStageRunner<'a> {
             StageOutput::List(l) => l,
             _ => return Err(Error::VariableTypeMismatch(format!("{} is not a list", list_name))),
         };
+        let mut counter = 0;
+        let max = list.len();
         for item in list {
+            log::info!("Loop {}/{}", counter, max);
             let mut variables: HashMap<String, StageOutput> = (*ctx.variables).clone();
             variables.insert(variable.clone(), StageOutput::Text(item.clone()));
             let mut last_output = StageOutput::None;
@@ -56,6 +59,7 @@ impl<'a> StageRunner for ForEachStageRunner<'a> {
                 StageOutput::Text(s) => s,
                 _ => return Err(Error::VariableTypeMismatch(format!("{} is not a text", variable))),
             });
+            counter += 1;
         }
 
         Ok(StageOutput::List(outputs))
