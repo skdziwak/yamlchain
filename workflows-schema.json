@@ -194,6 +194,35 @@
         {
           "type": "object",
           "required": [
+            "error_result",
+            "ok_result",
+            "stages",
+            "type"
+          ],
+          "properties": {
+            "error_result": {
+              "type": "string"
+            },
+            "ok_result": {
+              "type": "string"
+            },
+            "stages": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WorkflowStageData"
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "try"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
             "list",
             "stages",
             "type",

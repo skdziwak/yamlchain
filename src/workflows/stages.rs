@@ -35,3 +35,4 @@ pub mod shell_script;
 pub mod warn;
 pub mod split;
 pub mod echo;
+pub mod try_catch;
