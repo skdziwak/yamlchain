@@ -51,8 +51,9 @@ impl<'a> StageRunner for UntilStageRunner<'a> {
                 variables.insert(stage.name.clone(), output);
             }
 
-            last_value = ctx.interpolate(&self.template.value)?;
-            let expected_value = ctx.interpolate(&self.template.expected_value)?;
+            let loop_ctx = ctx.derive(&variables);
+            last_value = loop_ctx.interpolate(&self.template.value)?;
+            let expected_value = loop_ctx.interpolate(&self.template.expected_value)?;
 
             if last_value.trim() == expected_value.trim() {
                 break;
